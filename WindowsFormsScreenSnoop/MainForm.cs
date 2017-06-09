@@ -42,18 +42,31 @@ namespace WindowsFormsScreenSnoop
                         IFormatter formatter = new BinaryFormatter();
                         while (true)
                         {
-                            MethodInvoker mi = delegate () {
-                                Image image = (Image)formatter.Deserialize(stream);
-                                image = ResizeImage(image, PictureBoxSnoop.Width, PictureBoxSnoop.Height);
-                                PictureBoxSnoop.Image = image;
-                                /*
-                                PictureBoxSnoop.Height = image.Height;
-                                PictureBoxSnoop.Width = image.Width;
-                                */
-                               PictureBoxSnoop.SizeMode = PictureBoxSizeMode.CenterImage;
-                            };
-                            this.Invoke(mi);
-                            Thread.Sleep(1000);
+                            bool isInterrupted = false;
+                                MethodInvoker mi = delegate () {
+                                    try
+                                    {
+                                        Image image = (Image)formatter.Deserialize(stream);
+                                        if (PictureBoxSnoop.Width != 0 && PictureBoxSnoop.Height != 0)
+                                        {
+                                            image = ResizeImage(image, PictureBoxSnoop.Width, PictureBoxSnoop.Height);
+                                        }
+
+                                        PictureBoxSnoop.Image = image;
+
+                                        PictureBoxSnoop.SizeMode = PictureBoxSizeMode.CenterImage;
+                                    }
+                                    catch(Exception ex)
+                                    {
+                                        isInterrupted = true;
+                                    }
+                                };
+                            if(isInterrupted)
+                            {
+                                break;
+                            }
+                                this.Invoke(mi);
+                                Thread.Sleep(1000);
                         }
                     }
                 }
